@@ -97,29 +97,18 @@ class OracleDriverType(str, enum.Enum):
     """Database Driver Type"""
     THIN = "THIN"
     THICK = "THICK"
-    CX_ORACLE = "CX"
 
 
 SQLNET_ORA_CONFIG = None
 args = utils.parse_args(REQUIRED_CONFIG_KEYS)
 
-# Set the environment variable ORA_PYTHON_DRIVER_TYPE to one of "cx", "thin", or "thick":
+# Set ORA_PYTHON_DRIVER_TYPE to one of "thin" or "thick":
 if os.getenv('ORA_PYTHON_DRIVER_TYPE'):
    ORA_PYTHON_DRIVER_TYPE = os.getenv('ORA_PYTHON_DRIVER_TYPE').upper()
 else:
-   ORA_PYTHON_DRIVER_TYPE = args.config.get('ora_python_driver_type', OracleDriverType.CX_ORACLE).upper()
+   ORA_PYTHON_DRIVER_TYPE = args.config.get('ora_python_driver_type', OracleDriverType.THIN).upper()
 
-if ORA_PYTHON_DRIVER_TYPE == OracleDriverType.CX_ORACLE:
-    LOGGER.info("Running in cx mode")
-    description = (
-        f"cx_oracle is no longer maintained, use python-oracledb"
-        f"\n\nTo switch to python-oracledb set the environment variable ORA_PYTHON_DRIVER_TYPE=thin or thick."
-        f"\n\nDocumentation for python-oracledb can be found here: "
-        f"https://oracle.github.io/python-oracledb/"
-    )
-    LOGGER.warning(description)
-    import cx_Oracle as oracledb
-elif ORA_PYTHON_DRIVER_TYPE == OracleDriverType.THICK:
+if ORA_PYTHON_DRIVER_TYPE == OracleDriverType.THICK:
     import oracledb
     LOGGER.info("Running in thick mode")
     oracledb.init_oracle_client()
@@ -130,6 +119,7 @@ elif ORA_PYTHON_DRIVER_TYPE == OracleDriverType.THIN:
 else:
     exc = (
         f"Invalid value set for ORA_PYTHON_DRIVER_TYPE\n"
-        f"Use any one of 'cx', 'thin', or 'thick'"
+        f"Use any one of 'thin' or 'thick'"
     )
     LOGGER.critical(exc)
+    raise ValueError(exc)
